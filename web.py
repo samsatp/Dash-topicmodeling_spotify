@@ -9,6 +9,7 @@ import os
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SKETCHY])
+server = app.server
 
 COL_1_content = html.Div([
     html.H1("Description"),
