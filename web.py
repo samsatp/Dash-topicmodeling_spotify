@@ -4,39 +4,57 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+import plotly.express as px
 import os
+import dash_table
+from utils import *
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SKETCHY])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LITERA])
 server = app.server
+
+modelsName = {
+    'model_2' : "Sequential",
+    'fineTune' : "Fine-tuned Distilled BERT"
+}
+initial_fig = get_initial_fig()
 
 COL_1_content = html.Div([
     html.H1("Description"),
-    dcc.Markdown('''
+    html.P('''
     This project uses Natural Language Processing and Machine Learning methods to achieve multi-class classification problem.
     In this project, I use approximately ten-thousand descriptions of podcasts broadcasting in Spotify which are obtained by API. 
     Together with their associated label, the data is used to trained the models to classify the label from text. 
-    All the labels are pre-defined by me, currently 10 classes, including `["machine learning", "cooking", "crime", "politics", "kid", "comedy", "sport", "culture", "lifestyle", "business"]`
-    ''')
-])
+    All the labels are pre-defined by me, currently 10 classes, including 
+    ''', style={'font-weight': '400', 'font-size':'large'}, className='lead'),
+    html.Code('"machine learning", "cooking", "crime", "politics", "kid", "comedy", "sport", "culture", "lifestyle", "business"')
+], className="col", id='col1')
+
 
 COL_2_content = html.Div([
-    dcc.Input(id='input-1-state', type='text', value='Montréal'),
-    dcc.Input(id='input-2-state', type='text', value='Canada'),
-    html.Button(id='submit-button-state', n_clicks=0, children='Submit'),
-    html.Div(id='output-state')
+    html.Div([
+        dcc.Textarea(className="form-control", id="input-text-area", rows="10", placeholder='Type input here')
+    ]),
+    html.Div([
+        dcc.Dropdown(options=[
+                        {'label': 'Sequential model', 'value': 'model_2'},
+                        {'label': 'Fine-tuned Distilled BERT', 'value': 'fineTune'}
+                    ], searchable=False, placeholder="Select the model", id='model_selection', clearable=False),
+    ]),
+    html.Div([
+        html.Button(id='submit-button-state', n_clicks=0, children='Submit', className="btn btn-lg btn-primary", style={"margin":"10px"}),
+        html.Div(id='output-state', children='output here')
+    ])
 ],
 style={
     'text-align':'center',
     'align-items': 'center',
-    'transform': 'translate(0%, 50%)'
-})
+}, className='col', id='col2')
 
 COL_3_content = html.Div([
-    html.H4("Result", className="card-header"),
-    dcc.Markdown("{cooking: 0.45, ...}", className="card-text", id="result-holder"),
-], className="card border-primary mb-3")
+    html.H4("Result"),
+    dcc.Graph(id='result-fig', figure=initial_fig),
+], className='col', id='col3')
 
 
 app.layout = html.Div([
@@ -44,26 +62,31 @@ app.layout = html.Div([
     dbc.Row([
         dbc.Col(COL_1_content),
         dbc.Col(COL_2_content),
-        dbc.Col(COL_3_content)
+        dbc.Col(COL_3_content),
     ]),
-    
 ])
 
 
 
+
 @app.callback(Output('output-state', 'children'),
-              Output('result-holder', 'children'),
+              Output('result-fig', 'figure'),
               Input('submit-button-state', 'n_clicks'),
-              State('input-1-state', 'value'),
-              State('input-2-state', 'value'))
-def update_output(n_clicks, input1, input2):
-    return '''
-        The Button has been pressed {} times,
-        Input 1 is "{}",
-        and Input 2 is "{}"
-    '''.format(n_clicks, input1, input2), f'''
-    - input1 : {input1} \n - input2 : {input2}
-    '''
+              State('model_selection', 'value'),
+              State('input-text-area', 'value'))
+def update_output(n_clicks, selected_model, text):
+    if text is None: 
+        return "Please give the input", initial_fig
+    if selected_model is None:
+        return "Please select the model", initial_fig
+    print(selected_model)
+    print(text)
+    out = '''Using {} model'''.format(modelsName[selected_model])
+    if n_clicks>0:
+        out+= '''\nPlease wait for the result'''
+    result_df = send_request(model=selected_model, text=preprocess(text))
+    result_fig = px.pie(result_df, values='probabilities', names='label', title='Labels probabilities')
+    return out, result_fig
 
 
 if __name__ == '__main__':
