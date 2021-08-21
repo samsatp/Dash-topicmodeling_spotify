@@ -67,8 +67,6 @@ app.layout = html.Div([
 ])
 
 
-
-
 @app.callback(Output('output-state', 'children'),
               Output('result-fig', 'figure'),
               Input('submit-button-state', 'n_clicks'),
@@ -79,8 +77,8 @@ def update_output(n_clicks, selected_model, text):
         return "Please give the input", initial_fig
     if selected_model is None:
         return "Please select the model", initial_fig
-    print(selected_model)
-    print(text)
+    print(f'selected model: {selected_model}')
+    print(f'input text: {text}')
     out = '''Using {} model'''.format(modelsName[selected_model])
     if n_clicks>0:
         out+= '''\nPlease wait for the result'''
@@ -91,3 +89,5 @@ def update_output(n_clicks, selected_model, text):
 
 if __name__ == '__main__':
     app.run_server(debug=False, port=os.getenv('PORT','8050'))
+    hello = requests.get(f"http://{INGRESS_URL}/topicmodelling").text
+    print(hello)
