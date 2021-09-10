@@ -23,7 +23,7 @@ COL_1_content = html.Div([
     html.H1("Description"),
     html.P('''
     This project uses Natural Language Processing and Machine Learning methods to achieve multi-class classification problem.
-    In this project, I use approximately ten-thousand descriptions of podcasts broadcasting in Spotify which are obtained by API. 
+    In this project, I use approximately ten-thousand descriptions of podcasts broadcasting in Spotify which are collected by API. 
     Together with their associated label, the data is used to trained the models to classify the label from text. 
     All the labels are pre-defined by me, currently 10 classes, including 
     ''', style={'font-weight': '400', 'font-size':'large'}, className='lead'),
